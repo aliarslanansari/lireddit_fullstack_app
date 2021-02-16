@@ -62,7 +62,7 @@ export class UserResolver {
             field: "password",
             message: "password must be atleast 4 character",
           },
-        ],
+        ], 
       }
     }
     const hashedPassword = await argon2.hash(options.password)
@@ -70,7 +70,19 @@ export class UserResolver {
       username: options.username,
       password: hashedPassword,
     })
-    await em.persistAndFlush(user)
+    try {
+      await em.persistAndFlush(user)
+    } catch (err) {
+      if(err.code==='23505'){
+        return {
+          errors:[{
+            field:'username',
+            message:'Username is already taken'
+          }]
+        } 
+      }
+      console.log(err)
+    }
     return { user }
   }
 
