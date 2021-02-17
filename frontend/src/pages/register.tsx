@@ -17,15 +17,16 @@ const Register: React.FC<registerProps> = ({}) => {
   return (
     <Wrapper variant="small">
       <Formik
-        initialValues={{ username: "", password: "" }}
+        initialValues={{ username: "", password: "", email: "" }}
         onSubmit={async (values, { setErrors }) => {
-          const response = await register(values)
+          const response = await register({ options: values })
           if (response.data?.register.errors) {
             setErrors(toErrorMap(response.data.register.errors))
           } else if (response.data?.register.user) {
-            router.push('/')
+            router.push("/")
           }
-        }}>
+        }}
+      >
         {({ isSubmitting }) => (
           <Form>
             <InputField
@@ -33,6 +34,13 @@ const Register: React.FC<registerProps> = ({}) => {
               label="Username"
               placeholder="username"
             />
+            <Box mt={4}>
+              <InputField
+                name="email"
+                label="Email"
+                placeholder="email"
+              />
+            </Box>
             <Box mt={4}>
               <InputField
                 name="password"
@@ -45,7 +53,8 @@ const Register: React.FC<registerProps> = ({}) => {
               mt={4}
               type="submit"
               colorScheme="teal"
-              isLoading={isSubmitting}>
+              isLoading={isSubmitting}
+            >
               Register
             </Button>
           </Form>
@@ -56,4 +65,3 @@ const Register: React.FC<registerProps> = ({}) => {
 }
 
 export default withUrqlClient(createUrqlClient)(Register)
-
