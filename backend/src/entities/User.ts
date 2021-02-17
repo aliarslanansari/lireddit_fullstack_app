@@ -23,4 +23,7 @@ export class User {
   //Password is not exposed to GraphQL API
   @Property({ type: "text" })
   password!: string
+
+  @Property({ type: "text", unique: true })
+  email!: string
 }
