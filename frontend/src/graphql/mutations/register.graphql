@@ -1,12 +1,9 @@
-mutation Register($username:String!, $password:String!){
-  register(options:{username:$username,password:$password}){
-    user{
-      id
-      username
-      createdAt
-      updatedAt
+mutation Register($username: String!, $password: String!) {
+  register(options: { username: $username, password: $password }) {
+    user {
+      ...RegularUser
     }
-    errors{
+    errors {
       field
       message
     }
