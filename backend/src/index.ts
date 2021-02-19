@@ -4,7 +4,7 @@ import connectRedis from "connect-redis"
 import cors from "cors"
 import express from "express"
 import session from "express-session"
-import redis from "redis"
+import Redis from "ioredis"
 import { buildSchema } from "type-graphql"
 import { __prod__ } from "./constants"
 import microConfig from "./mikro-orm.config"
@@ -18,7 +18,7 @@ const main = async () => {
 
   const app = express()
   const RedisStore = connectRedis(session)
-  const redisClient = redis.createClient()
+  const redis = new Redis()
   app.use(
     cors({
       origin: "http://localhost:3000",
@@ -28,7 +28,7 @@ const main = async () => {
   app.use(
     session({
       name: "qid",
-      store: new RedisStore({ client: redisClient, disableTouch: true }),
+      store: new RedisStore({ client: redis, disableTouch: true }),
       saveUninitialized: false,
       secret: "keyboard dog",
       resave: false,
@@ -45,7 +45,7 @@ const main = async () => {
       resolvers: [PostResolver, UserResolver],
       validate: false,
     }),
-    context: ({ req, res }): MyContext => ({ em: orm.em, req, res }),
+    context: ({ req, res }): MyContext => ({ em: orm.em, req, res, redis }),
   })
 
   apolloServer.applyMiddleware({

@@ -10,9 +10,11 @@ import {
 } from "type-graphql"
 import argon2 from "argon2"
 import { User } from "../entities/User"
-import { COOKIE_NAME } from "../constants"
+import { COOKIE_NAME, FORGET_PASSWORD_PREFIX } from "../constants"
 import { UsernamePasswordInput } from "./UsernamePasswordInput"
 import { validateRegister } from "../utils/validateRegister"
+import { sendMail } from "../utils/sendEmail"
+import { v4 } from "uuid"
 
 @ObjectType()
 class FieldError {
@@ -34,8 +36,71 @@ class UserResponse {
 
 @Resolver()
 export class UserResolver {
+  @Mutation(() => UserResponse)
+  async changePassword(
+    @Arg("token") token: string,
+    @Arg("newPassword") newPassword: string,
+    @Ctx() { redis, em, req }: MyContext
+  ): Promise<UserResponse> {
+    if (newPassword.length <= 3) {
+      return {
+        errors: [
+          {
+            field: "newPassword",
+            message: "Password must be atleast 4 character",
+          },
+        ],
+      }
+    }
+    const userId = await redis.get(FORGET_PASSWORD_PREFIX + token)
+    if (!userId) {
+      return {
+        errors: [
+          {
+            field: "token",
+            message: "token expired",
+          },
+        ],
+      }
+    }
+    const user = await em.findOne(User, { id: parseInt(userId) })
+    if (!user) {
+      return {
+        errors: [
+          {
+            field: "token",
+            message: "user no longer exist",
+          },
+        ],
+      }
+    }
+    user.password = await argon2.hash(newPassword)
+    await em.persistAndFlush(user)
+
+    req.session.userId = user.id
+
+    return { user }
+  }
+
   @Mutation(() => Boolean)
-  forgotPassword(@Arg("email") email: string, @Ctx() { em }: MyContext) {
+  async forgotPassword(
+    @Arg("email") email: string,
+    @Ctx() { em, redis }: MyContext
+  ) {
+    const user = await em.findOne(User, { email })
+    if (!user) {
+      return false
+    }
+    const token = v4()
+    redis.set(
+      FORGET_PASSWORD_PREFIX + token,
+      user.id,
+      "ex",
+      1000 * 60 * 60 * 24 * 3 // 3 days
+    )
+
+    const url = `<a href="http://localhost:3000/change-password/${token}">Reset Password</a>`
+    sendMail(email, url)
     return true
   }
 
