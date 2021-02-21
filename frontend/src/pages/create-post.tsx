@@ -3,16 +3,23 @@ import { Form, Formik } from "formik"
 import React from "react"
 import InputField from "../components/InputField"
 import Wrapper from "../components/Wrapper"
+import { useCreatePostMutation } from "../generated/graphql"
+import { useRouter } from "next/router"
+import { withUrqlClient } from "next-urql"
+import { createUrqlClient } from "../utils/createUrqlClient"
 
 interface CreatePostProps {}
 
 const CreatePost: React.FC<CreatePostProps> = ({}) => {
+  const router = useRouter()
+  const [, createPost] = useCreatePostMutation()
   return (
     <Wrapper variant="small">
       <Formik
         initialValues={{ title: "", text: "" }}
         onSubmit={async (values, { setErrors }) => {
-          console.log({ values })
+          await createPost({ input: values })
+          router.push("/")
         }}
       >
         {({ isSubmitting }) => (
@@ -41,4 +48,4 @@ const CreatePost: React.FC<CreatePostProps> = ({}) => {
   )
 }
 
-export default CreatePost
+export default withUrqlClient(createUrqlClient)(CreatePost)
