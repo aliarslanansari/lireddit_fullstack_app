@@ -4,6 +4,7 @@ import cors from "cors"
 import express from "express"
 import session from "express-session"
 import Redis from "ioredis"
+import path from "path"
 import { buildSchema } from "type-graphql"
 import { createConnection } from "typeorm"
 import { __prod__ } from "./constants"
@@ -20,9 +21,12 @@ const main = async () => {
     username: "postgres",
     password: "password",
     logging: true,
+    migrations: [path.join(__dirname, "./migrations/*")],
     synchronize: true,
     entities: [Post, User],
   })
+
+  conn.runMigrations()
 
   const app = express()
   const RedisStore = connectRedis(session)
