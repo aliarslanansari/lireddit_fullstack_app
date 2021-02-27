@@ -234,7 +234,7 @@ export type MeQuery = (
 
 export type PostsQueryVariables = Exact<{
   limit: Scalars['Int'];
-  cursor: Scalars['String'];
+  cursor: Scalars['String']|null;
 }>;
 
 
