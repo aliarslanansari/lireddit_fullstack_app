@@ -58,7 +58,7 @@ const Index = () => {
           </Flex>
         )}
     </Layout>
-  )
+  ) 
 }
 
 export default withUrqlClient(createUrqlClient, { ssr: true })(Index)
