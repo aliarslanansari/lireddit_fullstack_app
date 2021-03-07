@@ -1,1 +1,1 @@
-# Full Stack React Typescript Nextjs GraphQL PorstgreSQL project
+# Full Stack React Typescript Nextjs GraphQL PorstgreSQL project 
